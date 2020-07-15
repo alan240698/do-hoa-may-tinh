@@ -1,0 +1,486 @@
+#include "graphics.h"
+#include<math.h>
+#include<QPainter>
+#include<QString>
+#include<QPen>
+
+graphics::graphics(QWidget *parent) :
+    QWidget(parent)
+{
+    position=0;
+        position01=300;
+        position1=0;
+        position2=350;
+        position3=700;
+        position4=1050;
+        timerId=startTimer(10);
+        angle=0;
+        angle1=30;
+    QVector<QString> NhieuMau;
+        NhieuMau<<"#FFFF00";
+       ViTri=0;
+       HT=QPointF(200,200);
+       double w=width()+1280;
+       double h=height()+200;
+       for(int i=0;i<100;i++){
+           vitriSao<<QPointF(random(0,w),random(0,h));
+           mausacSao<<NhieuMau.at(random(0,NhieuMau.size()));
+           kichthuocSao<<random(1,3);
+       }
+}
+void graphics::paintEvent(QPaintEvent *){
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    drawSky(painter);       //ve nen bau troi
+    drawHouse(painter);     //ve ngoi nha
+    drawRoad(painter);      //ve con duong
+    drawWindMill(painter);  //ve than va dinh coi xoay gio
+    drawMoon(painter);      //ve mat trang
+    drawMountain(painter);  //ve nui
+    drawTree(painter);      //ve cay xanh
+    drawHaw(painter);       //ve hang rao
+    drawPicture(painter);   //ve tu cac anh
+    drawStars(painter);     //ve nhieu ngoi sao
+    drawButterfly(painter); //ve con buom
+    drawRotary(painter);    //ve canh coi xoay gio
+    drawCar(painter,0, height()/5,position);//ve xe hoi
+    drawWalkMan(painter);   //ve nguoi di bo
+
+}
+//Cac ham quay
+QPoint graphics::quay(QPoint p, QPoint c, int deta){
+    QPoint pnew;
+    double goc=deta*3.14/180;
+    pnew.setX(c.x()+(p.x()-c.x())*cos(goc)-(p.y()-c.y())*sin(goc));
+    pnew.setY(c.y()+(p.x()-c.x())*sin(goc)+(p.y()-c.y())*cos(goc));
+    return pnew;
+}
+QPointF graphics::quay1(QPointF BD,double kc,double huong){
+    return QPointF(BD.x()+kc*cos(M_PI*huong/180),BD.y()+kc*sin(M_PI*huong/180));
+}
+QPointF graphics::quaynew(QPointF p1, QPointF c1, int deta1){
+    QPointF pnewgoc;
+    double goc=deta1*3.14/180;
+    pnewgoc.setX(c1.x()+(p1.x()-c1.x())*cos(goc)-(p1.y()-c1.y())*sin(goc));
+    pnewgoc.setY(c1.y()+(p1.x()-c1.x())*sin(goc)+(p1.y()-c1.y())*cos(goc));
+    return pnewgoc;
+}
+//cac ham random
+int graphics::random(int n1,int n2){
+    return rand()%n2+n1;
+}
+
+int graphics::random1(int n3){
+    return rand() % n3;
+}
+
+void graphics::timerEvent(QTimerEvent *){
+    position1+=-1;
+    angle1+=30;
+
+    int r=200;//kich thuoc vat di chuyen 1
+    int r2=200;//kich thuoc vat di chuyen 2
+    int r3=200;//kich thuoc vat di chuyen 3`
+       position+=1;
+       position01+=1;
+       position1+=-1;
+       position2+=-1;
+       position3+=-1;
+       position4+=-1;
+       angle+=1;
+       if(position==width()+r){
+           position+=1;
+           position=-r;
+     }
+       if(position01==width()+r2){
+           position01+=1;
+           position01=-r2;
+       }
+       if(position1==-r3){
+           position1+=-1;
+           position1=width();
+       }
+       if(position2==-r3){
+           position2+=-1;
+           position2=width();
+       }
+       if(position3==-r3){
+           position3+=-1;
+           position3=width();
+       }
+       if(position4==-r3){
+           position4+=-1;
+           position4=width();
+       }
+//VONG LAP NGAN SAO
+    for(int i=0;i<100;i++){
+            int at=random(1,2);
+            vitriSao[i].rx()+=((at==1)? 1:-1);
+            vitriSao[i].ry()+=((at==1)? 1:-1);
+            kichthuocSao[i]=random(1,3);
+        }
+//VE NGUOI DI BO
+    hinh+=1;
+    if(hinh==6) hinh=0;
+    repaint();
+}
+//VE BAU TROI
+void graphics::drawSky(QPainter &painter){
+    int x=0;
+    int y=0;
+    int w=width();
+    int h=height();
+    painter.setBrush(QBrush("#191970"));
+    painter.drawRect(x,y,w,h);
+
+}
+
+//VE MOT NGOI SAO
+void graphics::drawStar(QPainter &painter,QPointF ViTri,QString MaMau,double kich,double xoay,double soCanh){
+    painter.setPen(QColor(MaMau));
+    painter.setBrush(QColor(MaMau));
+    painter.drawEllipse(ViTri,kich,kich);
+    double Do=xoay;
+    for(int i=0;i<soCanh;i++){
+        QPointF D1=quay1(ViTri,kich*2,Do+180);
+        QPointF D2=quay1(ViTri,kich*2,Do);
+        painter.drawLine(D1,D2);
+        Do=Do+360/(soCanh*2);
+    }
+}
+//VE NHIEU NGOI SAO
+void graphics::drawStars(QPainter &painter){
+    for(int i=0;i<100;i++){
+        drawStar(painter,vitriSao.at(i),mausacSao.at(i),kichthuocSao.at(i),0,2);
+    }
+}
+//VE XE
+void graphics::drawCar(QPainter &painter, int x, int y, double position){
+    int xr=position+40;
+    int yr=590;
+    int xr1=position+200;
+
+    QPoint p(xr,yr);
+    painter.setBrush((Qt::white));
+    painter.setPen(QPen(Qt::black,5,Qt::SolidLine));
+    drawWhell(painter,xr,yr,angle);
+
+    drawWhell(painter,xr1,yr,angle);
+}
+//VE NGOI NHA
+void graphics::drawHouse(QPainter& painter){
+    int w=1280;
+         int h=800;
+         //than nha
+         painter.setBrush(QBrush("#FF69B4"));
+         painter.drawRect(w/120,400,230,100);
+         //tang1
+         painter.setBrush(QBrush("#EE00EE"));
+         painter.drawRect(w/120,300,230,100);
+         //cua tren tang 1
+         painter.setBrush(QBrush("#FFB90F"));
+         painter.drawRect(180,320,50,80);
+        //lang cang
+          painter.setBrush(Qt::VerPattern);
+          painter.drawRect(w/120,350,230,50);
+         //noc nha
+         QPoint noc[4]={
+             QPoint(90,200),
+             QPoint(10,300),
+             QPoint(240,300),
+             QPoint(160,200)
+         };
+         painter.setBrush(QBrush("#EE0000"));
+
+         painter.drawPolygon(noc,4);
+
+         //cua chinh
+             painter.setBrush(QBrush("#EE0000"));
+                     painter.drawRect(100,420,50,80);
+
+            //cua so
+            //bentrai
+             painter.setBrush(QBrush("#00BFFF"));
+            painter.drawRect(30,410,40,40);
+            //benphai
+             painter.setBrush(QBrush("#00BFFF"));
+           painter.drawRect(180,410,40,40);
+
+
+}
+//VE NUI
+void graphics::drawMountain(QPainter& painter){
+    int w=1280;
+    int h=800;
+    int x=400;
+    int y=400;
+    int r=100;
+    //nui
+    QPoint nui[7]={
+        QPoint(x,y),
+        QPoint(w+(r/2),y),
+        QPoint(w-r,r),
+        QPoint(w-(2*r),y-r),
+        QPoint(w-x,0),
+        QPoint(w-(1.5*x),y-r),
+        QPoint(w-(x+3*r),y/2)
+    };
+    painter.setBrush(QBrush("#4F4F4F"));
+    painter.drawPolygon(nui,7);
+}
+//VE CON DUONG
+void graphics::drawRoad(QPainter& painter){
+    //duongdi
+    int xd=0;
+    int yd=510;
+    int dd=width();
+    int rd=height()/4;
+    painter.setBrush(QBrush("#4F4F4F"));
+    painter.drawRect(xd,yd,dd,rd);
+
+    //vach ke duong
+    int y=560;//vi tri xuat hien vach ke duong tren truc tung
+    int d=200;//chieu dai vach ke duong
+    int r=25;//chieu rong vach ke duong
+
+    QString vachkeduong="D://vachkeduong.png";
+    painter.drawPixmap(position1,y,d,r,QPixmap(vachkeduong));
+    painter.drawPixmap(position2,y,d,r,QPixmap(vachkeduong));
+    painter.drawPixmap(position3,y,d,r,QPixmap(vachkeduong));
+    painter.drawPixmap(position4,y,d,r,QPixmap(vachkeduong));
+
+ }
+
+
+//CAY XANH
+void graphics::drawTree(QPainter &painter){
+   //cay 1
+        painter.setPen(Qt::NoPen);
+             int x=h+200+400;
+             int y=w+200;
+             int d=100;
+             int r=d/4;
+             QPoint c(x,y);
+             QPoint p(x,y-r);
+             painter.setBrush(QBrush("#A0522D"));
+             painter.drawRect(h+180+400,350,r,r*4);
+                    for( int i=1;i<=6;i++){
+                         QPoint d5=quay(p,c,i*62);
+                         painter.setBrush(QBrush("#008B00"));
+                         painter.drawEllipse(d5,r*2,r*2);
+
+   //cay 2
+         painter.setPen(Qt::NoPen);
+             int x=h+200+400+200;
+             int y=w+200;
+             int d=100;
+             int r=d/5;
+             QPoint c(x,y);
+             QPoint p(x,y-r);
+             painter.setBrush(QBrush("#A0522D"));
+             painter.drawRect(h+180+400+200,350,r,r*4);
+                    for( int i=1;i<=5;i++){
+                         QPoint d5=quay(p,c,i*72);
+                         painter.setBrush(QBrush("#008B00"));
+                         painter.drawEllipse(d5,r*2,r*2);
+
+   //cay3
+         painter.setPen(Qt::NoPen);
+             int x=h+200+400+200+200;
+             int y=w+200;
+             int d=50;
+             int r=d/2;
+             QPoint c(x,y);
+             QPoint p(x,y-r);
+             painter.setBrush(QBrush("#A0522D"));
+             painter.drawRect(h+180+400+200+200,350,r,r*4);
+                     for( int i=1;i<=5;i++){
+                          QPoint d5=quay(p,c,i*72);
+                          painter.setBrush(QBrush("#008B00"));
+                          painter.drawEllipse(d5,r*2,r*2);
+
+
+   //cay4
+         painter.setPen(Qt::NoPen);
+             int x=h+200+400+200+200+200;
+             int y=w+200;
+             int d=80;
+             int r=d/4;
+             QPoint c(x,y);
+             QPoint p(x,y-r);
+             painter.setBrush(QBrush("#A0522D"));
+             painter.drawRect(h+180+400+200+200+200,350,r,r*4);
+                    for( int i=1;i<=5;i++){
+                         QPoint d5=quay(p,c,i*52);
+                         painter.setBrush(QBrush("#008B00"));
+                         painter.drawEllipse(d5,r*2,r*2);
+
+
+                   }
+               }
+          }
+     }
+}
+//COI XOAY GIO
+void graphics::drawWindMill(QPainter &painter){
+    //than
+    QPoint than[4]={
+        QPoint(310,300),
+        QPoint(270,480),
+        QPoint(390,480),
+        QPoint(350,300)
+
+    };
+    painter.setBrush(QBrush("#8B008B"));
+    painter.drawPolygon(than,4);
+
+    //noc
+    QPoint noc[3]={
+        QPoint(300,300),
+        QPoint(360,300),
+        QPoint(330,250)
+    };
+    painter.setBrush(QBrush("#FF3333"));
+    painter.drawPolygon(noc,3);
+}
+//VE XE
+//VE BUOM BAY
+void graphics::drawButterfly(QPainter &painter){
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(random1(255),random1(255),random1(255)));
+    int x=random1(width()/2+500);
+    int y=random1(height()/2+500);
+
+    int d=50;
+    int r=d/3;
+    QPoint c(x,y);
+    QPoint p(x,y-r);
+    for( int i=1;i<=4;i++){
+        QPoint a6=quay(p,c,i*62);
+        painter.drawEllipse(a6,r,r);
+    }
+}
+//VE CANH COI XOAY GIO
+void graphics::drawRotary(QPainter& painter){
+    int r=10;
+    int h1=height();
+    int w1=width();
+    pcenter10.setX(w/2+280);
+    pcenter10.setY(h/2+260);
+    pstart10.setX(pcenter10.x());
+    pstart10.setY(pcenter10.y()-100);
+
+    pnewgoc=quaynew(pstart10,pcenter10,angle1);
+    pnew00=quaynew(pstart10,pcenter10,angle1+30);
+    pnew11=quaynew(pstart10,pcenter10,angle1+90);
+    pnew12=quaynew(pstart10,pcenter10,angle1+150);
+    pnew13=quaynew(pstart10,pcenter10,angle1+210);
+    pnew14=quaynew(pstart10,pcenter10,angle1+270);
+    pnew15=quaynew(pstart10,pcenter10,angle1+330);
+
+    painter.setPen(Qt::black);
+    painter.drawEllipse(pcenter10,r,r);
+    painter.setPen(QPen(Qt::white,30));
+    painter.drawLine(pcenter10,pnew00);
+    painter.drawLine(pcenter10,pnew11);
+    painter.drawLine(pcenter10,pnew12);
+    painter.drawLine(pcenter10,pnew13);
+    painter.drawLine(pcenter10,pnew14);
+    painter.drawLine(pcenter10,pnew15);
+}
+//VE ANH
+void graphics::drawPicture(QPainter& painter){
+    int dx=700;         //chieu dai xe
+         int rx=500;    //chieu rong xe
+         int d=200;     //chieu dai cua may va may bay
+         int r=100;     // chieu rong cua may va may bay
+        int w=1280/6;   //vi tri xe xuat hien tren truc hoanh
+        int h=210;      //vi tri xe xuat hien tren truc tung
+        int h1=40;      // vi tri xuat hien may tren truc tung
+        int h2=20;      //vi tri xuat hien cua may tren truc tung
+
+
+        QString filename="D://xe.PNG";          //tai anh may bay
+        QString filename2="D://bay3.PNG";       //tai anh may bay
+        QString filename3="D://may1.PNG";       //tai anh may 1
+        QString filename4="D://may2.PNG";       //tai anh may 2
+
+        painter.drawPixmap(position-200,h,dx,rx,QPixmap(filename)); //ve xe
+        painter.drawPixmap(position,h1,d,r,QPixmap(filename2));     //ve may bay
+        painter.drawPixmap(position01,h2,d,r,QPixmap(filename3));   //ve may 1
+        painter.drawPixmap(position1,h2,d,r,QPixmap(filename4));    //ve may 2
+
+
+}
+//VE MAT TRANG
+void graphics::drawMoon(QPainter &painter){
+    int r1=100;
+    QString moon="D://moon.png";
+    painter.drawPixmap(11*r1,0,r1,r1,QPixmap(moon));
+}
+//VE HANG RAO
+void graphics::drawHaw(QPainter &painter){
+     int r1=100;
+     QString hangrao="D://hangrao.png";
+     QString coxanh="D://coxanh.png";
+   painter.drawPixmap(6*r1-30,4*r1-20,r1,r1,QPixmap(hangrao));
+   painter.drawPixmap(9*r1-130,4*r1-40,r1,r1,QPixmap(hangrao));
+   painter.drawPixmap(10*r1-30,4*r1-20,r1,r1,QPixmap(hangrao));
+   painter.drawPixmap(12*r1-30,4*r1-40,r1,r1,QPixmap(hangrao));
+   painter.drawPixmap(8*r1+50,4*r1-120,r1*2,r1*2,QPixmap(coxanh));
+   painter.drawPixmap(8*r1,4*r1-120,r1*2,r1*2,QPixmap(coxanh));
+   painter.drawPixmap(6*r1+20,4*r1-120,r1*2,r1*2,QPixmap(coxanh));
+   painter.drawPixmap(10*r1+30,4*r1-120,r1*2,r1*2,QPixmap(coxanh));
+   painter.drawPixmap(12*r1,4*r1-120,r1*2,r1*2,QPixmap(coxanh));
+}
+
+//VE BANH XE
+void graphics::drawWhell(QPainter &painter, int x,int y, int angle){
+    int r=80;
+    int n=31;
+    pcenter.setX(x);
+    pcenter.setY(y);
+    pcenter1.setX(x+210);
+    pcenter1.setY(y+300);
+
+    pstart.setX(pcenter.x());
+    pstart.setY(pcenter.y()-n);
+    pstart1.setX(pcenter.x());
+    pstart1.setY(pcenter.y()+n);
+    pstart2.setX(pcenter.x()+n);
+    pstart2.setY(pcenter.y());
+    pstart3.setX(pcenter.x()-n);
+    pstart3.setY(pcenter.y());
+
+    pnew=quay(pstart,pcenter, angle);
+    pnew1=quay(pstart1,pcenter, angle);
+    pnew2=quay(pstart2,pcenter, angle);
+    pnew3=quay(pstart3,pcenter, angle);
+
+    painter.setPen(QPen(Qt::black,5,Qt::SolidLine));
+    painter.setRenderHint(QPainter::Antialiasing,5);
+    painter.drawEllipse(pcenter,2*r/5,2*r/5);
+
+    painter.setBrush((Qt::white));
+    painter.setPen(QPen(Qt::black,5,Qt::SolidLine));
+    painter.drawLine(pcenter,pnew);
+    painter.drawLine(pcenter,pnew1);
+    painter.drawLine(pcenter,pnew2);
+    painter.drawLine(pcenter,pnew3);
+}
+//VE NGUOI DI BO
+void graphics::drawWalkMan(QPainter &painter){
+    QPixmap spritesheet("D://nguoi1.png");
+
+    double wHinh=spritesheet.width()/6;
+    double hHinh=spritesheet.height();
+    int r=5;
+
+    QRect displayWindow(wHinh*hinh,0,wHinh,hHinh);
+    QRect pos(position*5,height()/2+200,wHinh/2,hHinh/2);
+
+    painter.drawPixmap(pos,spritesheet,displayWindow);
+
+
+}
